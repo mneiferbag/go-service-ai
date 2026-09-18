@@ -4,6 +4,10 @@ Licensed under the MIT License. See file [LICENSE](./LICENSE).
 
 A simple Go microservice providing an HTTP REST API with standard library routing, graceful shutdown, and containerization support.
 
+[![CodeQL](https://github.com/mneiferbag/go-service-ai/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/mneiferbag/go-service-ai/actions/workflows/github-code-scanning/codeql)
+[![Dependabot Updates](https://github.com/mneiferbag/go-service-ai/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/mneiferbag/go-service-ai/actions/workflows/dependabot/dependabot-updates)
+[![Dependency Graph](https://github.com/mneiferbag/go-service-ai/actions/workflows/dependabot/update-graph/badge.svg)](https://github.com/mneiferbag/go-service-ai/actions/workflows/dependabot/update-graph)
+
 ## API Endpoints
 
 ### `GET /hello`
