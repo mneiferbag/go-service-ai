@@ -15,15 +15,18 @@ A simple Go microservice providing an HTTP REST API with standard library routin
 Returns a greeting message in JSON format.
 
 **Request:**
+
 ```http
 GET /hello HTTP/1.1
 Host: localhost:8080
 ```
 
 **Response:**
+
 - **Status:** `200 OK`
 - **Content-Type:** `application/json`
 - **Body:**
+
   ```json
   {"message":"hello"}
   ```
@@ -57,6 +60,7 @@ curl -i http://localhost:8080/hello
 ```
 
 Expected output:
+
 ```http
 HTTP/1.1 200 OK
 Content-Type: application/json
@@ -96,7 +100,14 @@ docker build -t go-service-ai .
 docker run -p 8080:8080 go-service-ai
 ```
 
+## Rules
+
+Rules for coding agents can be found in the following files.
+
+- [AGENTS.md](./AGENTS.md)
+- [GEMINI.md](./GEMINI.md)
+
 ## Links
 
-* [Go Documentation](https://go.dev/doc/)
-* [golang](https://hub.docker.com/_/golang/) - Official Image - Docker Hub
+- [Go Documentation](https://go.dev/doc/)
+- [golang](https://hub.docker.com/_/golang/) - Official Image - Docker Hub
