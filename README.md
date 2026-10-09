@@ -100,13 +100,6 @@ docker build -t go-service-ai .
 docker run -p 8080:8080 go-service-ai
 ```
 
-## Rules
-
-Rules for coding agents can be found in the following files.
-
-- [AGENTS.md](./AGENTS.md)
-- [GEMINI.md](./GEMINI.md)
-
 ## Links
 
 - [Go Documentation](https://go.dev/doc/)
