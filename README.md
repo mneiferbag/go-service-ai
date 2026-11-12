@@ -4,6 +4,8 @@ Licensed under the MIT License. See file [LICENSE](./LICENSE).
 
 A simple Go microservice providing an HTTP REST API with standard library routing, graceful shutdown, and containerization support.
 
+Developed with [Google Antigravity](https://antigravity.google/).
+
 [![CodeQL](https://github.com/mneiferbag/go-service-ai/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/mneiferbag/go-service-ai/actions/workflows/github-code-scanning/codeql)
 [![Dependabot Updates](https://github.com/mneiferbag/go-service-ai/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/mneiferbag/go-service-ai/actions/workflows/dependabot/dependabot-updates)
 [![Dependency Graph](https://github.com/mneiferbag/go-service-ai/actions/workflows/dependabot/update-graph/badge.svg)](https://github.com/mneiferbag/go-service-ai/actions/workflows/dependabot/update-graph)
@@ -29,6 +31,27 @@ Host: localhost:8080
 
   ```json
   {"message":"hello"}
+  ```
+
+### `GET /vocab`
+
+Returns a random German–Spanish vocabulary pair in JSON format.
+
+**Request:**
+
+```http
+GET /vocab HTTP/1.1
+Host: localhost:8080
+```
+
+**Response:**
+
+- **Status:** `200 OK`
+- **Content-Type:** `application/json`
+- **Body:**
+
+  ```json
+  {"de":"Hallo","es":"Hola"}
   ```
 
 ## Getting Started
@@ -68,6 +91,23 @@ Date: ...
 Content-Length: 20
 
 {"message":"hello"}
+```
+
+Or query the vocabulary trainer endpoint:
+
+```bash
+curl -i http://localhost:8080/vocab
+```
+
+Example output:
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: ...
+Content-Length: 26
+
+{"de":"Hallo","es":"Hola"}
 ```
 
 ### Running Tests
