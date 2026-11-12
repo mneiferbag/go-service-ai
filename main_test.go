@@ -51,7 +51,70 @@ func TestHelloHandler(t *testing.T) {
 	}
 }
 
+func TestVocabHandler(t *testing.T) {
+	t.Parallel()
+
+	validPairs := make(map[string]string, len(defaultVocabulary))
+	for _, entry := range defaultVocabulary {
+		validPairs[entry.De] = entry.Es
+	}
+
+	tests := []struct {
+		name string
+	}{
+		{name: "returns valid German-Spanish vocabulary pair"},
+		{name: "consistent valid schema on repeated request"},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			req := httptest.NewRequest(http.MethodGet, "/vocab", nil)
+			rec := httptest.NewRecorder()
+
+			VocabHandler(rec, req)
+
+			res := rec.Result()
+			defer res.Body.Close()
+
+			if res.StatusCode != http.StatusOK {
+				t.Fatalf("expected status %d, got %d", http.StatusOK, res.StatusCode)
+			}
+
+			contentType := res.Header.Get("Content-Type")
+			if contentType != "application/json" {
+				t.Errorf("expected Content-Type application/json, got %q", contentType)
+			}
+
+			body, err := io.ReadAll(res.Body)
+			if err != nil {
+				t.Fatalf("failed to read response body: %v", err)
+			}
+
+			var entry VocabularyEntry
+			if err := json.Unmarshal(body, &entry); err != nil {
+				t.Fatalf("failed to unmarshal JSON response %q: %v", string(body), err)
+			}
+
+			if entry.De == "" || entry.Es == "" {
+				t.Fatalf("expected non-empty vocabulary fields, got %+v", entry)
+			}
+
+			expectedEs, ok := validPairs[entry.De]
+			if !ok {
+				t.Errorf("unexpected German word %q in response", entry.De)
+			} else if entry.Es != expectedEs {
+				t.Errorf("for German %q expected Spanish %q, got %q", entry.De, expectedEs, entry.Es)
+			}
+		})
+	}
+}
+
 func TestServerRouting(t *testing.T) {
+	t.Parallel()
+
 	server := NewServer()
 
 	tests := []struct {
@@ -73,6 +136,18 @@ func TestServerRouting(t *testing.T) {
 			expectedStatus: http.StatusMethodNotAllowed,
 		},
 		{
+			name:           "GET /vocab returns 200 OK",
+			method:         http.MethodGet,
+			path:           "/vocab",
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "POST /vocab returns 405 Method Not Allowed",
+			method:         http.MethodPost,
+			path:           "/vocab",
+			expectedStatus: http.StatusMethodNotAllowed,
+		},
+		{
 			name:           "GET /nonexistent returns 404 Not Found",
 			method:         http.MethodGet,
 			path:           "/nonexistent",
@@ -81,7 +156,10 @@ func TestServerRouting(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			req := httptest.NewRequest(tc.method, tc.path, nil)
 			rec := httptest.NewRecorder()
 
@@ -95,32 +173,61 @@ func TestServerRouting(t *testing.T) {
 }
 
 func TestServerIntegration(t *testing.T) {
+	t.Parallel()
+
 	ts := httptest.NewServer(NewServer())
 	defer ts.Close()
 
-	resp, err := http.Get(ts.URL + "/hello")
-	if err != nil {
-		t.Fatalf("GET /hello failed: %v", err)
-	}
-	defer resp.Body.Close()
+	t.Run("GET /hello", func(t *testing.T) {
+		resp, err := http.Get(ts.URL + "/hello")
+		if err != nil {
+			t.Fatalf("GET /hello failed: %v", err)
+		}
+		defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("expected status %d, got %d", http.StatusOK, resp.StatusCode)
-	}
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("expected status %d, got %d", http.StatusOK, resp.StatusCode)
+		}
 
-	if ct := resp.Header.Get("Content-Type"); ct != "application/json" {
-		t.Errorf("expected Content-Type application/json, got %q", ct)
-	}
+		if ct := resp.Header.Get("Content-Type"); ct != "application/json" {
+			t.Errorf("expected Content-Type application/json, got %q", ct)
+		}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatalf("failed to read response body: %v", err)
-	}
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatalf("failed to read response body: %v", err)
+		}
 
-	trimmedBody := strings.TrimSpace(string(body))
-	if trimmedBody != `{"message":"hello"}` {
-		t.Errorf("expected body %q, got %q", `{"message":"hello"}`, trimmedBody)
-	}
+		trimmedBody := strings.TrimSpace(string(body))
+		if trimmedBody != `{"message":"hello"}` {
+			t.Errorf("expected body %q, got %q", `{"message":"hello"}`, trimmedBody)
+		}
+	})
+
+	t.Run("GET /vocab", func(t *testing.T) {
+		resp, err := http.Get(ts.URL + "/vocab")
+		if err != nil {
+			t.Fatalf("GET /vocab failed: %v", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("expected status %d, got %d", http.StatusOK, resp.StatusCode)
+		}
+
+		if ct := resp.Header.Get("Content-Type"); ct != "application/json" {
+			t.Errorf("expected Content-Type application/json, got %q", ct)
+		}
+
+		var entry VocabularyEntry
+		if err := json.NewDecoder(resp.Body).Decode(&entry); err != nil {
+			t.Fatalf("failed to decode VocabularyEntry: %v", err)
+		}
+
+		if entry.De == "" || entry.Es == "" {
+			t.Errorf("expected non-empty VocabularyEntry fields, got %+v", entry)
+		}
+	})
 }
 
 func TestConfigFromEnv(t *testing.T) {

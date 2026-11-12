@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"math/rand/v2"
 	"net"
 	"net/http"
 	"os"
@@ -18,6 +19,25 @@ type HelloResponse struct {
 	Message string `json:"message"`
 }
 
+// VocabularyEntry represents a German-Spanish vocabulary pair.
+type VocabularyEntry struct {
+	De string `json:"de"`
+	Es string `json:"es"`
+}
+
+var defaultVocabulary = []VocabularyEntry{
+	{De: "Hallo", Es: "Hola"},
+	{De: "Danke", Es: "Gracias"},
+	{De: "Bitte", Es: "Por favor"},
+	{De: "Guten Morgen", Es: "Buenos días"},
+	{De: "Auf Wiedersehen", Es: "Adiós"},
+	{De: "Wasser", Es: "Agua"},
+	{De: "Freund", Es: "Amigo"},
+	{De: "Haus", Es: "Casa"},
+	{De: "Buch", Es: "Libro"},
+	{De: "Katze", Es: "Gato"},
+}
+
 // HelloHandler handles GET /hello requests and returns a JSON response.
 func HelloHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -27,10 +47,21 @@ func HelloHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// VocabHandler handles GET /vocab requests and returns a random vocabulary pair as JSON.
+func VocabHandler(w http.ResponseWriter, r *http.Request) {
+	entry := defaultVocabulary[rand.IntN(len(defaultVocabulary))]
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(entry); err != nil {
+		log.Printf("error encoding response: %v", err)
+	}
+}
+
 // NewServer configures and returns an http.Handler with all registered routes.
 func NewServer() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /hello", HelloHandler)
+	mux.HandleFunc("GET /vocab", VocabHandler)
 	return mux
 }
 
